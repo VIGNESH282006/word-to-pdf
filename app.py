@@ -1,30 +1,46 @@
-import os
 from flask import Flask, request, send_file, render_template
-from docx2pdf import convert
 from werkzeug.utils import secure_filename
+import pypandoc
+import os
+
+# Ensure pandoc is available (required for Render)
+pypandoc.download_pandoc()
 
 app = Flask(__name__)
+
 UPLOAD_FOLDER = "uploads"
-CONVERTED_FOLDER = "converted"
+OUTPUT_FOLDER = "output"
+
+# Create folders if they don't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(CONVERTED_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        file = request.files["file"]
-        if file and file.filename.endswith(".docx"):
-            filename = secure_filename(file.filename)
-            docx_path = os.path.join(UPLOAD_FOLDER, filename)
-            pdf_filename = filename.replace(".docx", ".pdf")
-            pdf_path = os.path.join(CONVERTED_FOLDER, pdf_filename)
+@app.route('/')
+def upload_file():
+    return render_template('index.html')  # This should be a simple HTML form
 
-            file.save(docx_path)
-            convert(docx_path, pdf_path)
+@app.route('/convert', methods=['POST'])
+def convert_to_pdf():
+    if 'file' not in request.files:
+        return "No file part in request"
 
-            return send_file(pdf_path, as_attachment=True)
+    file = request.files['file']
+    if file.filename == '':
+        return "No selected file"
 
-    return render_template("upload.html")
+    filename = secure_filename(file.filename)
+    input_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(input_path)
+
+    output_filename = os.path.splitext(filename)[0] + '.pdf'
+    output_path = os.path.join(OUTPUT_FOLDER, output_filename)
+
+    try:
+        pypandoc.convert_file(input_path, 'pdf', outputfile=output_path)
+        return send_file(output_path, as_attachment=True)
+    except Exception as e:
+        return f"Conversion failed: {str(e)}"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
