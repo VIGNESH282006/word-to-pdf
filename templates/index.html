@@ -4,8 +4,8 @@
     <title>Word to PDF Converter</title>
 </head>
 <body>
-    <h2>Upload a Word (.docx) file</h2>
-    <form action="/" method="post" enctype="multipart/form-data">
+    <h1>Upload Word File (.docx)</h1>
+    <form action="/convert" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".docx" required>
         <button type="submit">Convert to PDF</button>
     </form>
