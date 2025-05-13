@@ -1,4 +1,3 @@
 Flask
 pypandoc
-docx2pdf
 
