@@ -4,10 +4,13 @@
     <title>Word to PDF Converter</title>
 </head>
 <body>
-    <h1>Upload Word File (.docx)</h1>
+    <h2>Upload Word File (.docx)</h2>
     <form action="/convert" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".docx" required>
-        <button type="submit">Convert to PDF</button>
+        <button type="submit">Convert</button>
     </form>
+    {% if message %}
+        <p style="color:red;">{{ message }}</p>
+    {% endif %}
 </body>
 </html>

@@ -1,5 +1,3 @@
 Flask
-pypandoc
-werkzeug
-
-
+python-docx
+weasyprint
