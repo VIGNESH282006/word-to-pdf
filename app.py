@@ -1,8 +1,7 @@
 import os
 from flask import Flask, request, render_template, send_file
 from werkzeug.utils import secure_filename
-from docx import Document
-from weasyprint import HTML
+from docx2pdf import convert
 
 app = Flask(__name__)
 
@@ -34,42 +33,15 @@ def convert_to_pdf():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         input_path = os.path.join(UPLOAD_FOLDER, filename)
+        output_pdf = os.path.join(OUTPUT_FOLDER, filename.replace('.docx', '.pdf'))
+
         file.save(input_path)
 
-        # Read the DOCX content
         try:
-            doc = Document(input_path)
-            content = ''.join(f"<p>{para.text}</p>" for para in doc.paragraphs)
-        except Exception as e:
-            return render_template('index.html', message=f"Failed to read DOCX: {e}")
-
-        # Generate HTML and convert to PDF
-        html = f"""
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    padding: 30px;
-                }}
-                p {{
-                    margin-bottom: 15px;
-                }}
-            </style>
-        </head>
-        <body>
-            {content}
-        </body>
-        </html>
-        """
-
-        output_pdf = os.path.join(OUTPUT_FOLDER, filename.replace('.docx', '.pdf'))
-        try:
-            HTML(string=html).write_pdf(output_pdf)
+            convert(input_path, output_pdf)
             return send_file(output_pdf, as_attachment=True)
         except Exception as e:
-            return render_template('index.html', message=f"PDF creation failed: {e}")
+            return render_template('index.html', message=f"Conversion failed: {e}")
     else:
         return render_template('index.html', message="Only .docx files are supported")
 
