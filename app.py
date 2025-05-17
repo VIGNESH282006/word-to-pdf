@@ -1,7 +1,7 @@
 import os
+import subprocess
 from flask import Flask, request, render_template, send_file
 from werkzeug.utils import secure_filename
-from docx2pdf import convert
 
 app = Flask(__name__)
 
@@ -38,10 +38,11 @@ def convert_to_pdf():
         file.save(input_path)
 
         try:
-            convert(input_path, output_pdf)
+            # Use pandoc to convert the DOCX file to PDF
+            subprocess.run(['pandoc', input_path, '-o', output_pdf], check=True)
             return send_file(output_pdf, as_attachment=True)
-        except Exception as e:
-            return render_template('index.html', message=f"Conversion failed: {e}")
+        except subprocess.CalledProcessError as e:
+            return render_template('index.html', message="Conversion failed. Ensure pandoc is installed.")
     else:
         return render_template('index.html', message="Only .docx files are supported")
 
